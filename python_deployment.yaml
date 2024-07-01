@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-deployment
+  labels:
+    app: python
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python
+  template:
+    metadata:
+      labels:
+        app: python
+    spec:
+      containers:
+        - name: python
+          image: mongo
+          ports:
+            - containerPort: 8080
+          env:
+            - name: USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: nginx-deployment-secret
+                  key: nginx-username
+            - name: NGINX_IP
+              valueFrom:
+                configMapKeyRef:
+                  name: python-configmap
+                  key: nginx_ip_add
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-service
+spec:
+  selector:
+    app: python
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001
+      nodePort: 30001
